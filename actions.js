@@ -19,6 +19,14 @@ function getTotalByRowNum(rowNum) {
   return $("[id='totalRoad" + rowNum + " ']")
 }
 
+function getInputValue(inputSelector) {
+  return $(inputSelector).val();
+}
+
+function setInputValue(inputSelector, newValue) {
+  $(inputSelector).val(newValue);
+}
+
 function tableRowsProcessing() {
   tab1Array = fillArray(cleanArray());
   $.each([1, 2, 3, 4, 5], function (rowIndex, num) {
@@ -43,14 +51,14 @@ function fillArray(array) {
   var arrayCopy = createArrayCopy(array);
   $.each([1, 2, 3, 4, 5], function (rowIndex, num) {
     getAllRowInputsByRowNum(num).each(function (column, el) {
-      arrayCopy[rowIndex][column] = parseFloat($(el).val());
+      arrayCopy[rowIndex][column] = parseFloat(getInputValue(el));
     });
   });
   return arrayCopy;
 }
 
 // Очищение массива значений
-function cleanArray() { // 
+function cleanArray() {
   var array = new Array(5);
   array[0] = new Array(10);
   array[1] = new Array(10);
@@ -60,53 +68,72 @@ function cleanArray() { //
   return array;
 }
 
+function updateArrayCell(array, rowIndex, columnIndex, newValue) {
+  array[rowIndex, columnIndex] = newValue;
+}
+
 // Метод для очищения нулевого значения в input
 function tableOnElementClick(element) {
-  var currentElement = $(element);
-  currentElement.val() == 0 ? currentElement.val("") : '';
+  if (getInputValue(element) == 0) {
+    setInputValue(element, '');
+  }
+}
+
+function isAddZero(value) {
+  return value.indexOf('.') == 0 || value.length == 0
 }
 
 // Дописывает 0 для ситуации ввода числа ".5"
 function tableOnElementChange(element) {
-  var currentElement = $(element);
-  var currentElementValue = currentElement.val();
-  if (currentElementValue.indexOf('.') == 0 || currentElementValue.length == 0) {
-    currentElement.val("0" + currentElementValue);
+  var currentElementValue = getInputValue(element);
+  if (isAddZero(currentElementValue)) {
+    setInputValue(element, "0" + currentElementValue);
   }
 }
 
-// Обновляет элементы таблицы
+// Обновляет элементы массива
 function updateArrayCell(element, array, rowIndex, column) {
   var arrayCopy = createArrayCopy(array);
-  arrayCopy[rowIndex][column] = parseFloat($(element).val());
+  arrayCopy[rowIndex][column] = parseFloat(getInputValue(element));
   return arrayCopy;
 }
 
+function getArrayValue(array, row, col) {
+  return array[row][col];
+}
+
+function setArrayValue(array, row, col, newValue) {
+  array[row][col] = newValue;
+}
 
 function updateConnectedCells(array, rowIndex, column) {
   var arrayCopy = createArrayCopy(array);
   if (rowIndex == 0 || rowIndex == 2 || rowIndex == 4) {
     var columnNum = (column + 1);
-    var calculationResult = getNewCalculatedValues(arrayCopy[0][column], arrayCopy[2][column], arrayCopy[4][column]);
-    var resultRow2 = calculationResult[0];
-    var resultRow4 = calculationResult[1];
-    getInputByRowAndColumn(2, columnNum).val(resultRow2);
-    getInputByRowAndColumn(4, columnNum).val(resultRow4);
+    var resultRow2 = getNewCalculatedValues(getArrayValue(arrayCopy, 0, column), getArrayValue(arrayCopy, 2, column), getArrayValue(arrayCopy, 4, column), 0);
+    var resultRow4 = getNewCalculatedValues(getArrayValue(arrayCopy, 0, column), getArrayValue(arrayCopy, 2, column), getArrayValue(arrayCopy, 4, column), 1);
+    setInputValue(getInputByRowAndColumn(2, columnNum), resultRow2);
+    setInputValue(getInputByRowAndColumn(4, columnNum), resultRow4);
 
-    arrayCopy[1][column] = resultRow2;
-    arrayCopy[3][column] = resultRow4;
+    setArrayValue(arrayCopy, 1, column, resultRow2);
+    setArrayValue(arrayCopy, 3, column, resultRow4);
   }
   return arrayCopy
 }
 
-function getNewCalculatedValues(valueRow1, valueRow3, valueRow5) {
-  var notNanValue1 = isNaN(valueRow1) ? 0 : valueRow1;
-  var notNanValue3 = isNaN(valueRow3) ? 0 : valueRow3;
-  var notNanValue5 = isNaN(valueRow5) ? 0 : valueRow5;
-  var result2 = notNanValue1 / notNanValue3;
-  var result4 = result2 - (notNanValue1 / notNanValue5);
-
-  return [getNonFinite(result2), getNonFinite(result4)]
+function getNewCalculatedValues(valueRow1, valueRow3, valueRow5, parType) {
+  if (parType == 0) {
+    var notNanValue1 = isNaN(valueRow1) ? 0 : valueRow1;
+    var notNanValue3 = isNaN(valueRow3) ? 0 : valueRow3;
+    var result2 = notNanValue1 / notNanValue3;
+    return getNonFinite(result2);
+  } else if (parType == 1) {
+    var notNanValue1 = isNaN(valueRow1) ? 0 : valueRow1;
+    var notNanValue5 = isNaN(valueRow5) ? 0 : valueRow5;
+    var result2 = notNanValue1 / notNanValue3;
+    var result4 = result2 - (notNanValue1 / notNanValue5);
+    return getNonFinite(result4)
+  }
 }
 
 // Возвращает конечное число
