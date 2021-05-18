@@ -29,10 +29,8 @@ function setInputValue(inputSelector, newValue) {
 
 function tableRowsProcessing() {
   tab1Array = fillArray(cleanArray());
-  $.each([1, 2, 3, 4, 5], function (rowIndex, num) {
-    getAllRowInputsByRowNum(num).each(function (column, el) {
-      inputsActions(el, tab1Array, rowIndex, column)
-    });
+  forAllTableCellsDo(function(el, tab1Array, rowIndex, column) { 
+    inputsActions(el, tab1Array, rowIndex, column);
   });
 }
 
@@ -47,12 +45,18 @@ function tableOnElementKeyUp(element, array, rowIndex, column) {
     updateConnectedCells(array, rowIndex, column);
 }
 
-function fillArray(array) {
-  var arrayCopy = createArrayCopy(array);
+function forAllTableCellsDo(callbackFunction) {
   $.each([1, 2, 3, 4, 5], function (rowIndex, num) {
     getAllRowInputsByRowNum(num).each(function (column, el) {
-      arrayCopy[rowIndex][column] = parseFloat(getInputValue(el));
+      callbackFunction(el, tab1Array, rowIndex, column);
     });
+  });
+}
+
+function fillArray(array) {
+  var arrayCopy = createArrayCopy(array);
+  forAllTableCellsDo(function(el, tab1Array, rowIndex, column) { 
+    arrayCopy[rowIndex][column] = parseFloat(getInputValue(el));
   });
   return arrayCopy;
 }
@@ -66,10 +70,6 @@ function cleanArray() {
   array[3] = new Array(10);
   array[4] = new Array(10);
   return array;
-}
-
-function updateArrayCell(array, rowIndex, columnIndex, newValue) {
-  array[rowIndex, columnIndex] = newValue;
 }
 
 // Метод для очищения нулевого значения в input
